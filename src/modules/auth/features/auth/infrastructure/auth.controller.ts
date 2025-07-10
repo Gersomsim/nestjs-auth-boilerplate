@@ -13,8 +13,9 @@ import { AuthRepository } from '../domain/repositories/auth.repository';
 import { CreateAuthDto } from './dto/create-auth.dto';
 import { LoginDto } from './dto/login.dto';
 import { UserModel } from '../../user/domain/models/user.model';
-import { Auth, GetUser } from 'src/modules/common/decorators';
+import { GetUser } from 'src/modules/common/decorators';
 import { AuthGuard } from '@nestjs/passport';
+import { ForgotPasswordDto } from './dto/forgot-password.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -49,5 +50,10 @@ export class AuthController {
     return response
       ? { message: 'Token is valid' }
       : { message: 'Token is invalid' };
+  }
+  @Post('forgot-password')
+  forgotPassword(@Body() payload: ForgotPasswordDto) {
+    this.repository.forgotPassword(payload.email);
+    return { message: 'Email sent' };
   }
 }

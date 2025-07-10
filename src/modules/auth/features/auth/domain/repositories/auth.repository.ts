@@ -10,7 +10,7 @@ export interface AuthRepository {
   logout(user: UserModel): Promise<void>;
   refreshToken(user: UserModel): AuthModel;
   verifyToken(token: string): boolean;
-  forgotPassword(email: string): Promise<void>;
+  forgotPassword(email: string): void;
   resetPassword(token: string, password: string): Promise<void>;
   changePassword(user: UserModel, newPassword: string): Promise<void>;
   verifyEmail(token: string): Promise<void>;

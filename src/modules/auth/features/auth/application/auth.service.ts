@@ -61,8 +61,10 @@ export class AuthService implements AuthRepository {
     return this.getAuth(user);
   }
 
-  forgotPassword(email: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  forgotPassword(email: string): void {
+    const token = this.getJwtTokenForgotPassword(email);
+    console.log(token);
+    // TODO: Send email with token
   }
   resetPassword(token: string, password: string): Promise<void> {
     throw new Error('Method not implemented.');
@@ -101,6 +103,16 @@ export class AuthService implements AuthRepository {
       expiresIn: `${envs.jwt.expirationRefresh}`,
       secret: envs.jwt.secretRefresh,
     });
+    return token;
+  }
+  private getJwtTokenForgotPassword(email: string) {
+    const token = this.jwtService.sign(
+      { id: email, type: 'forgot-password' },
+      {
+        expiresIn: envs.jwt.expirationForgotPassword,
+        secret: envs.jwt.secretForgotPassword,
+      },
+    );
     return token;
   }
 }

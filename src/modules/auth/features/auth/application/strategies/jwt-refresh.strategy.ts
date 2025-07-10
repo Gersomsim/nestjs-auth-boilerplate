@@ -1,14 +1,17 @@
+import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { PassportStrategy } from '@nestjs/passport';
 import { ExtractJwt, Strategy } from 'passport-jwt';
-import { UserModel } from '../../../user/domain/models/user.model';
+import { envs } from 'src/config/envs.config';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { UserRepository } from '../../../user/domain/repository/user.repository';
 import { UserRepositoryInterface } from '../../../user/domain/repository/user.repository.interface';
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
-import { envs } from 'src/config/envs.config';
+import { UserModel } from '../../../user/domain/models/user.model';
 
 @Injectable()
-export class JwtStrategy extends PassportStrategy(Strategy) {
+export class JwtRefreshStrategy extends PassportStrategy(
+  Strategy,
+  'jwt-refresh',
+) {
   constructor(
     @Inject(UserRepository)
     private readonly userRepository: UserRepositoryInterface,
@@ -16,16 +19,15 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: envs.jwt.secret,
+      secretOrKey: envs.jwt.secretRefresh,
     });
   }
 
-  // Este se ejecuta cuando se verifica el token y es valido
   async validate(payload: JwtPayload): Promise<UserModel> {
-    const { id, type } = payload;
-    if (type !== 'access') {
+    if (payload.type !== 'refresh') {
       throw new UnauthorizedException('Invalid token');
     }
+    const { id } = payload;
     const user = await this.userRepository.findById(id);
     if (!user) {
       throw new UnauthorizedException('Invalid token');

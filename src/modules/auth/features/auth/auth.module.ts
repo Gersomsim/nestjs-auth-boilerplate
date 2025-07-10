@@ -6,11 +6,18 @@ import { OrmUserRepository } from '@application/repositories';
 import { JwtStrategy } from './application/strategies/jwt.strategy';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '@domain/entities';
+import { JwtRefreshStrategy } from './application/strategies/jwt-refresh.strategy';
 
 @Module({
   controllers: [AuthController],
   imports: [TypeOrmModule.forFeature([UserEntity])],
-  providers: [AuthService, UserRepository, OrmUserRepository, JwtStrategy],
+  providers: [
+    AuthService,
+    UserRepository,
+    OrmUserRepository,
+    JwtStrategy,
+    JwtRefreshStrategy,
+  ],
   exports: [JwtStrategy],
 })
 export class AuthModule {}

@@ -7,6 +7,8 @@ interface EnvSchema {
   JWT_SECRET: string;
   JWT_EXPIRATION: string;
   API_VERSION: string;
+  JWT_EXPIRATION_REFRESH: string;
+  JWT_SECRET_REFRESH: string;
 }
 
 export const envsSchema = joi
@@ -16,6 +18,8 @@ export const envsSchema = joi
     JWT_SECRET: joi.string().required(),
     JWT_EXPIRATION: joi.string().required(),
     API_VERSION: joi.number().default(1),
+    JWT_EXPIRATION_REFRESH: joi.string().required(),
+    JWT_SECRET_REFRESH: joi.string().required(),
   })
   .unknown(true);
 
@@ -35,6 +39,8 @@ export const envs = {
   jwt: {
     secret: value.JWT_SECRET,
     expiration: value.JWT_EXPIRATION,
+    expirationRefresh: value.JWT_EXPIRATION_REFRESH,
+    secretRefresh: value.JWT_SECRET_REFRESH,
   },
   api: {
     port: value.PORT,

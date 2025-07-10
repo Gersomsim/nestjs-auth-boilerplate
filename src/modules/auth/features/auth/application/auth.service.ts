@@ -15,6 +15,7 @@ import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
 import { AuthModel } from '../domain/models/auth.model';
+import { envs } from 'src/config/envs.config';
 
 @Injectable()
 export class AuthService implements AuthRepository {
@@ -36,8 +37,8 @@ export class AuthService implements AuthRepository {
     const { password: _, ...userData } = user;
     return {
       user: userData,
-      accessToken: this.getJwtToken({ id: user.id }),
-      refreshToken: this.getRefreshToken({ id: user.id }),
+      accessToken: this.getJwtToken({ id: user.id, type: 'access' }),
+      refreshToken: this.getRefreshToken({ id: user.id, type: 'refresh' }),
     };
   }
   async register(user: CreateUserModel): Promise<AuthModel> {
@@ -50,15 +51,23 @@ export class AuthService implements AuthRepository {
     const userCreated = await this.repository.create(newUser);
     return {
       user: userCreated,
-      accessToken: this.getJwtToken({ id: userCreated.id }),
-      refreshToken: this.getRefreshToken({ id: userCreated.id }),
+      accessToken: this.getJwtToken({ id: userCreated.id, type: 'access' }),
+      refreshToken: this.getRefreshToken({
+        id: userCreated.id,
+        type: 'refresh',
+      }),
     };
   }
   logout(user: UserModel): Promise<void> {
     return Promise.resolve();
   }
-  refreshToken(user: UserModel): Promise<UserModel> {
-    throw new Error('Method not implemented.');
+  refreshToken(user: UserModel): AuthModel {
+    const { password: _, ...userData } = user;
+    return {
+      user: userData,
+      accessToken: this.getJwtToken({ id: user.id, type: 'access' }),
+      refreshToken: this.getRefreshToken({ id: user.id, type: 'refresh' }),
+    };
   }
   verifyToken(token: string): Promise<UserModel> {
     throw new Error('Method not implemented.');
@@ -91,7 +100,8 @@ export class AuthService implements AuthRepository {
   }
   private getRefreshToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload, {
-      expiresIn: '1d',
+      expiresIn: `${envs.jwt.expirationRefresh}`,
+      secret: envs.jwt.secretRefresh,
     });
     return token;
   }

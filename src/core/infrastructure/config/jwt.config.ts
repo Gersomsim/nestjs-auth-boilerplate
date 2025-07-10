@@ -6,7 +6,7 @@ export const jwtConfig = () => {
     global: true,
     secret: envs.jwt.secret,
     signOptions: {
-      expiresIn: `${envs.jwt.expiration}s`,
+      expiresIn: `${envs.jwt.expiration}`,
     },
   });
 };

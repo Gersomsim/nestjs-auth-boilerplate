@@ -6,6 +6,7 @@ interface EnvSchema {
   DATABASE_URL: string;
   JWT_SECRET: string;
   JWT_EXPIRATION: string;
+  API_VERSION: string;
 }
 
 export const envsSchema = joi
@@ -14,6 +15,7 @@ export const envsSchema = joi
     DATABASE_URL: joi.string().required(),
     JWT_SECRET: joi.string().required(),
     JWT_EXPIRATION: joi.string().required(),
+    API_VERSION: joi.number().default(1),
   })
   .unknown(true);
 
@@ -34,5 +36,8 @@ export const envs = {
     secret: value.JWT_SECRET,
     expiration: value.JWT_EXPIRATION,
   },
-  port: value.PORT,
+  api: {
+    port: value.PORT,
+    version: value.API_VERSION,
+  },
 };

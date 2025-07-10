@@ -1,8 +1,8 @@
+import { ValidationPipe, VersioningType } from '@nestjs/common';
 import { NestFactory } from '@nestjs/core';
+import { SwaggerModule } from '@nestjs/swagger';
 import { AppModule } from './app.module';
 import { envs } from './config/envs.config';
-import { ValidationPipe, VersioningType } from '@nestjs/common';
-import { SwaggerModule } from '@nestjs/swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -17,9 +17,10 @@ async function bootstrap() {
       },
     }),
   );
+
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: '1',
+    defaultVersion: envs.api.version,
   });
   const document = SwaggerModule.createDocument(app, {
     openapi: '3.0.0',
@@ -37,8 +38,8 @@ async function bootstrap() {
     },
   });
   SwaggerModule.setup('api', app, document);
-  await app.listen(envs.port, () => {
-    console.log(`Server is running on port ${envs.port}`);
+  await app.listen(envs.api.port, () => {
+    console.log(`Server is running on port ${envs.api.port}`);
   });
 }
 bootstrap();

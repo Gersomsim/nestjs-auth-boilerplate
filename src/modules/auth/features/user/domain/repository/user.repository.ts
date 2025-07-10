@@ -1,12 +1,12 @@
+import { OrmUserRepository } from '@application/repositories/modules/auth/orm-user.reporitory';
+import type { IOrmUserRepository } from '@domain/repository';
 import { Inject, Injectable } from '@nestjs/common';
-import { UserRepositoryInterface } from './user.repository.interface';
-import {
+import type {
   CreateUserModel,
   UpdateUserModel,
   UserModel,
 } from '../models/user.model';
-import { OrmUserRepository } from '@application/repositories/modules/auth/orm-user.reporitory';
-import { IOrmUserRepository } from '@domain/repository';
+import type { UserRepositoryInterface } from './user.repository.interface';
 
 @Injectable()
 export class UserRepository implements UserRepositoryInterface {
@@ -29,5 +29,8 @@ export class UserRepository implements UserRepositoryInterface {
   }
   delete(id: string): Promise<UserModel> {
     return this.userRepository.deleteElementById(id);
+  }
+  findByEmail(email: string): Promise<UserModel | null> {
+    return this.userRepository.findByEmail(email);
   }
 }

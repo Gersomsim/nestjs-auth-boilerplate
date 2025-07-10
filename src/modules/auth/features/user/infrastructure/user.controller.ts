@@ -1,5 +1,5 @@
 import { Controller, Inject } from '@nestjs/common';
-import { UserUseCaseInterface } from '../application/user.use-case.interface';
+import type { UserUseCaseInterface } from '../application/user.use-case.interface';
 import { UserUseCaseService } from '../application/user.use-case.service';
 
 @Controller('user')

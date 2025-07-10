@@ -1,28 +1,32 @@
 import { Inject, Injectable } from '@nestjs/common';
-import { UserRepositoryInterface } from '../domain/repository/user.repository.interface';
+import type {
+  CreateUserModel,
+  UpdateUserModel,
+  UserModel,
+} from '../domain/models/user.model';
 import { UserRepository } from '../domain/repository/user.repository';
-import { UserUseCaseInterface } from './user.use-case.interface';
-import { UserModel } from '../domain/models/user.model';
+import type { UserRepositoryInterface } from '../domain/repository/user.repository.interface';
+import type { UserUseCaseInterface } from './user.use-case.interface';
 
 @Injectable()
 export class UserUseCaseService implements UserUseCaseInterface {
   constructor(
     @Inject(UserRepository)
-    private readonly userRepository: UserRepositoryInterface,
+    private readonly repository: UserRepositoryInterface,
   ) {}
   findAll(): Promise<UserModel[]> {
-    throw new Error('Method not implemented.');
+    return this.repository.findAll();
   }
   findById(id: string): Promise<UserModel> {
-    throw new Error('Method not implemented.');
+    return this.repository.findById(id);
   }
-  create(user: UserModel): Promise<UserModel> {
-    throw new Error('Method not implemented.');
+  create(user: CreateUserModel): Promise<UserModel> {
+    return this.repository.create(user);
   }
-  update(user: UserModel): Promise<UserModel> {
-    throw new Error('Method not implemented.');
+  update(id: string, user: UpdateUserModel): Promise<UserModel> {
+    return this.repository.update(id, user);
   }
   delete(id: string): Promise<UserModel> {
-    throw new Error('Method not implemented.');
+    return this.repository.delete(id);
   }
 }

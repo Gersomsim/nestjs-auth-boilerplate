@@ -1,4 +1,4 @@
-import { BaseRepositoryInterface } from './base-repository.interface';
+import type { BaseRepositoryInterface } from './base-repository.interface';
 
 export abstract class BaseRepository<T> implements BaseRepositoryInterface<T> {
   getAll(): Promise<T[]> {

@@ -1,4 +1,4 @@
-import { BaseUseCaseInterface } from './base-use-case.interface';
+import type { BaseUseCaseInterface } from './base-use-case.interface';
 
 export abstract class BaseUseCases<T> implements BaseUseCaseInterface<T> {
   getAll(): Promise<T[]> {

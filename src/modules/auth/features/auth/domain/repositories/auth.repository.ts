@@ -2,16 +2,11 @@ import {
   CreateUserModel,
   UserModel,
 } from '../../../user/domain/models/user.model';
+import { AuthModel } from '../models/auth.model';
 
 export interface AuthRepository {
-  login(
-    email: string,
-    password: string,
-  ): Promise<{
-    user: UserModel;
-    accessToken: string;
-  }>;
-  register(user: CreateUserModel): Promise<UserModel>;
+  login(email: string, password: string): Promise<AuthModel>;
+  register(user: CreateUserModel): Promise<AuthModel>;
   logout(user: UserModel): Promise<void>;
   refreshToken(user: UserModel): Promise<UserModel>;
   verifyToken(token: string): Promise<UserModel>;

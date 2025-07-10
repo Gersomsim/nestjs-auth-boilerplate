@@ -1,4 +1,9 @@
-import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  Inject,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { AuthRepository } from '../domain/repositories/auth.repository';
 import { UserRepository } from '../../user/domain/repository/user.repository';
 import { UserRepositoryInterface } from '../../user/domain/repository/user.repository.interface';
@@ -9,6 +14,7 @@ import {
 import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { JwtService } from '@nestjs/jwt';
+import { AuthModel } from '../domain/models/auth.model';
 
 @Injectable()
 export class AuthService implements AuthRepository {
@@ -17,10 +23,36 @@ export class AuthService implements AuthRepository {
     private readonly repository: UserRepositoryInterface,
     private readonly jwtService: JwtService,
   ) {}
-  async register(user: CreateUserModel): Promise<UserModel> {
+  async login(email: string, password: string): Promise<AuthModel> {
+    const user = await this.repository.findByEmail(email);
+    if (!user) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const passwordHash = user.password ?? '';
+    const isPasswordValid = await bcrypt.compare(password, passwordHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const { password: _, ...userData } = user;
+    return {
+      user: userData,
+      accessToken: this.getJwtToken({ id: user.id }),
+      refreshToken: this.getRefreshToken({ id: user.id }),
+    };
+  }
+  async register(user: CreateUserModel): Promise<AuthModel> {
+    const userExists = await this.repository.findByEmail(user.email);
+    if (userExists) {
+      throw new BadRequestException('User already exists');
+    }
     const passwordHash = await bcrypt.hash(user.password, 10);
     const newUser = { ...user, password: passwordHash };
-    return this.repository.create(newUser);
+    const userCreated = await this.repository.create(newUser);
+    return {
+      user: userCreated,
+      accessToken: this.getJwtToken({ id: userCreated.id }),
+      refreshToken: this.getRefreshToken({ id: userCreated.id }),
+    };
   }
   logout(user: UserModel): Promise<void> {
     return Promise.resolve();
@@ -53,30 +85,14 @@ export class AuthService implements AuthRepository {
     throw new Error('Method not implemented.');
   }
 
-  async login(
-    email: string,
-    password: string,
-  ): Promise<{
-    user: UserModel;
-    accessToken: string;
-  }> {
-    const user = await this.repository.findByEmail(email);
-    if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-    const passwordHash = user.password ?? '';
-    const isPasswordValid = await bcrypt.compare(password, passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
-    }
-
-    return {
-      user,
-      accessToken: this.getJwtToken({ id: user.id }),
-    };
-  }
   private getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
+    return token;
+  }
+  private getRefreshToken(payload: JwtPayload) {
+    const token = this.jwtService.sign(payload, {
+      expiresIn: '1d',
+    });
     return token;
   }
 }

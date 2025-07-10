@@ -1,4 +1,12 @@
-import { Body, Controller, Get, Inject, Post, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  Inject,
+  Param,
+  Post,
+  UseGuards,
+} from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../application/auth.service';
 import { AuthRepository } from '../domain/repositories/auth.repository';
@@ -35,9 +43,11 @@ export class AuthController {
   refreshToken(@GetUser() user: UserModel) {
     return this.repository.refreshToken(user);
   }
-  @Get()
-  @Auth()
-  verifyToken(@GetUser() user: UserModel) {
-    return user;
+  @Get('verify-token/:token')
+  verifyToken(@Param('token') token: string) {
+    const response = this.repository.verifyToken(token);
+    return response
+      ? { message: 'Token is valid' }
+      : { message: 'Token is invalid' };
   }
 }

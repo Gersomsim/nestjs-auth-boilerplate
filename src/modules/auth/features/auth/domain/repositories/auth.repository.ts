@@ -9,7 +9,7 @@ export interface AuthRepository {
   register(user: CreateUserModel): Promise<AuthModel>;
   logout(user: UserModel): Promise<void>;
   refreshToken(user: UserModel): AuthModel;
-  verifyToken(token: string): Promise<UserModel>;
+  verifyToken(token: string): boolean;
   forgotPassword(email: string): Promise<void>;
   resetPassword(token: string, password: string): Promise<void>;
   changePassword(user: UserModel, newPassword: string): Promise<void>;

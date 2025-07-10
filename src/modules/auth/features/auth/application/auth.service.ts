@@ -34,12 +34,7 @@ export class AuthService implements AuthRepository {
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const { password: _, ...userData } = user;
-    return {
-      user: userData,
-      accessToken: this.getJwtToken({ id: user.id, type: 'access' }),
-      refreshToken: this.getRefreshToken({ id: user.id, type: 'refresh' }),
-    };
+    return this.getAuth(user);
   }
   async register(user: CreateUserModel): Promise<AuthModel> {
     const userExists = await this.repository.findByEmail(user.email);
@@ -49,29 +44,23 @@ export class AuthService implements AuthRepository {
     const passwordHash = await bcrypt.hash(user.password, 10);
     const newUser = { ...user, password: passwordHash };
     const userCreated = await this.repository.create(newUser);
-    return {
-      user: userCreated,
-      accessToken: this.getJwtToken({ id: userCreated.id, type: 'access' }),
-      refreshToken: this.getRefreshToken({
-        id: userCreated.id,
-        type: 'refresh',
-      }),
-    };
+    return this.getAuth(userCreated);
+  }
+  verifyToken(token: string): boolean {
+    try {
+      this.jwtService.verify(token);
+      return true;
+    } catch (eror) {
+      return false;
+    }
   }
   logout(user: UserModel): Promise<void> {
     return Promise.resolve();
   }
   refreshToken(user: UserModel): AuthModel {
-    const { password: _, ...userData } = user;
-    return {
-      user: userData,
-      accessToken: this.getJwtToken({ id: user.id, type: 'access' }),
-      refreshToken: this.getRefreshToken({ id: user.id, type: 'refresh' }),
-    };
+    return this.getAuth(user);
   }
-  verifyToken(token: string): Promise<UserModel> {
-    throw new Error('Method not implemented.');
-  }
+
   forgotPassword(email: string): Promise<void> {
     throw new Error('Method not implemented.');
   }
@@ -92,6 +81,15 @@ export class AuthService implements AuthRepository {
   }
   sendVerificationEmail(email: string): Promise<void> {
     throw new Error('Method not implemented.');
+  }
+
+  private getAuth(user: UserModel) {
+    const { password: _, ...userData } = user;
+    return {
+      user: userData,
+      accessToken: this.getJwtToken({ id: user.id, type: 'access' }),
+      refreshToken: this.getRefreshToken({ id: user.id, type: 'refresh' }),
+    };
   }
 
   private getJwtToken(payload: JwtPayload) {

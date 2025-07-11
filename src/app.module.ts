@@ -1,19 +1,32 @@
-import { RateLimit } from '@infrastructure/config/rate-limit.config';
 import { Module } from '@nestjs/common';
-import { MainAuthModule } from './modules';
-import { sqlDatabaseConfig } from '@infrastructure/index';
-import { jwtConfig } from '@infrastructure/config/jwt.config';
-import { passportConfig } from '@infrastructure/config/passport.config';
+import { HttpExceptionFilter } from './infrastructure/http/filters/http-exeption.filter';
+import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
+import { ResponseInterceptor } from './infrastructure/http/interceptors/response.interceptor';
+import { TypeOrmModule } from '@nestjs/typeorm';
+import { UserEntity } from './infrastructure/databases/typeorm/user/entities/user.entity';
+import { envs } from './config/envs.config';
+import { AuthModule } from '@infrastructure/http/auth/auth.module';
 
 @Module({
   imports: [
-    jwtConfig(),
-    passportConfig(),
-    RateLimit(),
-    sqlDatabaseConfig(),
-    MainAuthModule,
+    TypeOrmModule.forRoot({
+      type: 'postgres',
+      url: envs.database.url,
+      entities: [UserEntity],
+      synchronize: true,
+    }),
+    AuthModule,
   ],
   controllers: [],
-  providers: [],
+  providers: [
+    {
+      provide: APP_FILTER,
+      useClass: HttpExceptionFilter,
+    },
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: ResponseInterceptor,
+    },
+  ],
 })
 export class AppModule {}

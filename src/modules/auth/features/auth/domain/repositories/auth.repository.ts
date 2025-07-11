@@ -11,7 +11,10 @@ export interface AuthRepository {
   refreshToken(user: UserModel): AuthModel;
   verifyToken(token: string): boolean;
   forgotPassword(email: string): void;
-  resetPassword(token: string, password: string): Promise<void>;
+  resetPassword(
+    user: UserModel,
+    password: string,
+  ): Promise<{ message: string }>;
   changePassword(user: UserModel, newPassword: string): Promise<void>;
   verifyEmail(token: string): Promise<void>;
   resendVerificationEmail(email: string): Promise<void>;

@@ -10,12 +10,15 @@ import {
 import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../application/auth.service';
 import { AuthRepository } from '../domain/repositories/auth.repository';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { LoginDto } from './dto/login.dto';
 import { UserModel } from '../../user/domain/models/user.model';
 import { GetUser } from 'src/modules/common/decorators';
 import { AuthGuard } from '@nestjs/passport';
-import { ForgotPasswordDto } from './dto/forgot-password.dto';
+import {
+  CreateAuthDto,
+  ForgotPasswordDto,
+  LoginDto,
+  ResetPasswordDto,
+} from './dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -55,5 +58,11 @@ export class AuthController {
   forgotPassword(@Body() payload: ForgotPasswordDto) {
     this.repository.forgotPassword(payload.email);
     return { message: 'Email sent' };
+  }
+  @Post('reset-password')
+  @UseGuards(AuthGuard('jwt-reset-password'))
+  resetPassword(@Body() payload: ResetPasswordDto, @GetUser() user: UserModel) {
+    const response = this.repository.resetPassword(user, payload.password);
+    return response;
   }
 }

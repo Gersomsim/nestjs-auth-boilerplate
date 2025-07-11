@@ -11,7 +11,7 @@ import { ApiTags } from '@nestjs/swagger';
 import { AuthService } from '../application/auth.service';
 import { AuthRepository } from '../domain/repositories/auth.repository';
 import { UserModel } from '../../user/domain/models/user.model';
-import { GetUser } from 'src/modules/common/decorators';
+import { Auth, GetUser } from 'src/modules/common/decorators';
 import { AuthGuard } from '@nestjs/passport';
 import {
   CreateAuthDto,
@@ -19,6 +19,7 @@ import {
   LoginDto,
   ResetPasswordDto,
 } from './dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -62,7 +63,14 @@ export class AuthController {
   @Post('reset-password')
   @UseGuards(AuthGuard('jwt-reset-password'))
   resetPassword(@Body() payload: ResetPasswordDto, @GetUser() user: UserModel) {
-    const response = this.repository.resetPassword(user, payload.password);
-    return response;
+    return this.repository.resetPassword(user, payload.password);
+  }
+  @Post('change-password')
+  @Auth()
+  changePassword(
+    @Body() payload: ChangePasswordDto,
+    @GetUser() user: UserModel,
+  ) {
+    return this.repository.changePassword(user, payload);
   }
 }

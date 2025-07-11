@@ -2,6 +2,7 @@ import {
   CreateUserModel,
   UserModel,
 } from '../../../user/domain/models/user.model';
+import { ChangePasswordDto } from '../../infrastructure/dto/change-password.dto';
 import { AuthModel } from '../models/auth.model';
 
 export interface AuthRepository {
@@ -15,7 +16,10 @@ export interface AuthRepository {
     user: UserModel,
     password: string,
   ): Promise<{ message: string }>;
-  changePassword(user: UserModel, newPassword: string): Promise<void>;
+  changePassword(
+    user: UserModel,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }>;
   verifyEmail(token: string): Promise<void>;
   resendVerificationEmail(email: string): Promise<void>;
   sendPasswordResetEmail(email: string): Promise<void>;

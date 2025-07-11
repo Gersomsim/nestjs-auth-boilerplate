@@ -17,6 +17,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthModel } from '../domain/models/auth.model';
 import { envs } from 'src/config/envs.config';
 import { ResetPasswordDto } from '../infrastructure/dto';
+import { ChangePasswordDto } from '../infrastructure/dto/change-password.dto';
 
 @Injectable()
 export class AuthService implements AuthRepository {
@@ -75,8 +76,24 @@ export class AuthService implements AuthRepository {
     await this.repository.update(user.id, { password: passwordHash });
     return { message: 'Password reset successfully' };
   }
-  changePassword(user: UserModel, newPassword: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  async changePassword(
+    user: UserModel,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const userDB = await this.repository.findByEmail(user.email);
+    if (!userDB) {
+      throw new UnauthorizedException('Invalid credentials');
+    }
+    const verifyPassword = await bcrypt.compare(
+      changePasswordDto.password,
+      userDB.password!,
+    );
+    if (!verifyPassword) {
+      throw new BadRequestException('Invalid current password');
+    }
+    const passwordHash = await bcrypt.hash(changePasswordDto.newPassword, 10);
+    await this.repository.update(user.id, { password: passwordHash });
+    return { message: 'Password changed successfully' };
   }
   verifyEmail(token: string): Promise<void> {
     throw new Error('Method not implemented.');

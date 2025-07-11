@@ -2,7 +2,8 @@ export class UserModel {
   id: string;
   name: string;
   email: string;
-  password?: string;
+  isVerified: boolean;
+  isActive: boolean;
 }
 
 export class CreateUserModel {
@@ -11,4 +12,8 @@ export class CreateUserModel {
   password: string;
 }
 
-export type UpdateUserModel = Partial<CreateUserModel>;
+export interface UpdateUserModel extends Partial<CreateUserModel> {
+  verifiedAt?: Date;
+  isVerified?: boolean;
+  isActive?: boolean;
+}

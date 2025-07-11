@@ -5,14 +5,14 @@ import type {
   UserModel,
 } from '../domain/models/user.model';
 import { UserRepository } from '../domain/repository/user.repository';
-import type { UserRepositoryInterface } from '../domain/repository/user.repository.interface';
+import type { IUserRepository } from '../domain/repository/user.repository.interface';
 import type { UserUseCaseInterface } from './user.use-case.interface';
 
 @Injectable()
 export class UserUseCaseService implements UserUseCaseInterface {
   constructor(
     @Inject(UserRepository)
-    private readonly repository: UserRepositoryInterface,
+    private readonly repository: IUserRepository,
   ) {}
   findAll(): Promise<UserModel[]> {
     return this.repository.findAll();

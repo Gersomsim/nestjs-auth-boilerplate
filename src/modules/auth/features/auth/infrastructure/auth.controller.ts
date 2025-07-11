@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Body,
   Controller,
   Get,
@@ -8,8 +9,7 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
-import { AuthService } from '../application/auth.service';
-import { AuthRepository } from '../domain/repositories/auth.repository';
+import { UseCaseService, IUseCaseService } from '../application';
 import { UserModel } from '../../user/domain/models/user.model';
 import { Auth, GetUser } from 'src/modules/common/decorators';
 import { AuthGuard } from '@nestjs/passport';
@@ -25,13 +25,13 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 @Controller('auth')
 export class AuthController {
   constructor(
-    @Inject(AuthService)
-    private readonly repository: AuthRepository,
+    @Inject(UseCaseService)
+    private readonly useCases: IUseCaseService,
   ) {}
 
   @Post('login')
   login(@Body() credentials: LoginDto) {
-    const response = this.repository.login(
+    const response = this.useCases.login(
       credentials.email,
       credentials.password,
     );
@@ -40,30 +40,30 @@ export class AuthController {
 
   @Post('register')
   register(@Body() payload: CreateAuthDto) {
-    const response = this.repository.register(payload);
+    const response = this.useCases.register(payload);
     return response;
   }
   @Post('refresh-token')
   @UseGuards(AuthGuard('jwt-refresh'))
   refreshToken(@GetUser() user: UserModel) {
-    return this.repository.refreshToken(user);
+    return this.useCases.refreshToken(user);
   }
   @Get('verify-token/:token')
   verifyToken(@Param('token') token: string) {
-    const response = this.repository.verifyToken(token);
+    const response = this.useCases.verifyToken(token);
     return response
       ? { message: 'Token is valid' }
       : { message: 'Token is invalid' };
   }
   @Post('forgot-password')
   forgotPassword(@Body() payload: ForgotPasswordDto) {
-    this.repository.forgotPassword(payload.email);
+    this.useCases.forgotPassword(payload.email);
     return { message: 'Email sent' };
   }
   @Post('reset-password')
   @UseGuards(AuthGuard('jwt-reset-password'))
   resetPassword(@Body() payload: ResetPasswordDto, @GetUser() user: UserModel) {
-    return this.repository.resetPassword(user, payload.password);
+    return this.useCases.resetPassword(user, payload.password);
   }
   @Post('change-password')
   @Auth()
@@ -71,6 +71,22 @@ export class AuthController {
     @Body() payload: ChangePasswordDto,
     @GetUser() user: UserModel,
   ) {
-    return this.repository.changePassword(user, payload);
+    return this.useCases.changePassword(user, payload);
+  }
+  @Post('verify-email')
+  @UseGuards(AuthGuard('jwt-reset-password'))
+  verifyEmail(@GetUser() user: UserModel) {
+    if (user.isVerified) {
+      throw new BadRequestException('Email already verified');
+    }
+    return this.useCases.verifyEmail(user);
+  }
+  @Post('resend-verification-email')
+  @Auth()
+  resendVerificationEmail(@GetUser() user: UserModel) {
+    if (user.isVerified) {
+      throw new BadRequestException('Email already verified');
+    }
+    return this.useCases.resendVerificationEmail(user.email);
   }
 }

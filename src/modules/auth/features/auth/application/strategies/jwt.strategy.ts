@@ -3,7 +3,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { UserModel } from '../../../user/domain/models/user.model';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { UserRepository } from '../../../user/domain/repository/user.repository';
-import { UserRepositoryInterface } from '../../../user/domain/repository/user.repository.interface';
+import { IUserRepository } from '../../../user/domain/repository/user.repository.interface';
 import { Inject, Injectable, UnauthorizedException } from '@nestjs/common';
 import { envs } from 'src/config/envs.config';
 
@@ -11,7 +11,7 @@ import { envs } from 'src/config/envs.config';
 export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(
     @Inject(UserRepository)
-    private readonly userRepository: UserRepositoryInterface,
+    private readonly userRepository: IUserRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -29,6 +29,9 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const user = await this.userRepository.findById(id);
     if (!user) {
       throw new UnauthorizedException('Invalid token');
+    }
+    if (!user.isActive) {
+      throw new UnauthorizedException('User is not active, contact support');
     }
     return user;
   }

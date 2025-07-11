@@ -4,7 +4,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { envs } from 'src/config/envs.config';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
 import { UserRepository } from '../../../user/domain/repository/user.repository';
-import { UserRepositoryInterface } from '../../../user/domain/repository/user.repository.interface';
+import { IUserRepository } from '../../../user/domain/repository/user.repository.interface';
 import { UserModel } from '../../../user/domain/models/user.model';
 
 @Injectable()
@@ -14,7 +14,7 @@ export class JwtRefreshStrategy extends PassportStrategy(
 ) {
   constructor(
     @Inject(UserRepository)
-    private readonly userRepository: UserRepositoryInterface,
+    private readonly userRepository: IUserRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),

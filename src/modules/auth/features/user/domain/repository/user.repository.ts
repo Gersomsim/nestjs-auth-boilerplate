@@ -6,10 +6,10 @@ import type {
   UpdateUserModel,
   UserModel,
 } from '../models/user.model';
-import type { UserRepositoryInterface } from './user.repository.interface';
+import type { IUserRepository } from './user.repository.interface';
 
 @Injectable()
-export class UserRepository implements UserRepositoryInterface {
+export class UserRepository implements IUserRepository {
   constructor(
     @Inject(OrmUserRepository)
     private readonly userRepository: IOrmUserRepository,
@@ -29,8 +29,5 @@ export class UserRepository implements UserRepositoryInterface {
   }
   delete(id: string): Promise<UserModel> {
     return this.userRepository.deleteElementById(id);
-  }
-  findByEmail(email: string): Promise<UserModel | null> {
-    return this.userRepository.findByEmail(email);
   }
 }

@@ -1,8 +1,8 @@
-import { CreateUserDto, GetUserDto, UpdateUserDto } from '@domain/dto';
-import { UserEntity } from '@domain/entities/modules';
-import { IOrmUserRepository } from '@domain/repository';
 import { Injectable } from '@nestjs/common';
 import { FindManyOptions, DataSource } from 'typeorm';
+import { IOrmUserRepository } from '@domain/repository';
+import { UserEntity } from '@domain/entities/modules';
+import { CreateUserDto, GetUserDto, UpdateUserDto } from '@domain/dto';
 import { BaseOrmRepository } from '../common/base-orm.repository';
 
 @Injectable()
@@ -24,6 +24,8 @@ export class OrmUserRepository
       id: user.id,
       name: user.name,
       email: user.email,
+      isVerified: user.isVerified,
+      isActive: user.isActive,
     };
   }
 
@@ -31,10 +33,5 @@ export class OrmUserRepository
     const options: FindManyOptions<UserEntity> = {};
     const users = await this.getEntities(options);
     return users.map((user) => this.toDto(user));
-  }
-
-  async findByEmail(email: string): Promise<GetUserDto | null> {
-    const user = await this.findOne({ where: { email } });
-    return user;
   }
 }

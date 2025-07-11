@@ -1,27 +1,16 @@
-import {
-  CreateUserModel,
-  UserModel,
-} from '../../../user/domain/models/user.model';
-import { ChangePasswordDto } from '../../infrastructure/dto/change-password.dto';
+import { Inject, Injectable } from '@nestjs/common';
 import { AuthModel } from '../models/auth.model';
+import { IOrmAuthRepository } from '@domain/repository';
+import { OrmAuthRepository } from '@application/repositories/modules/auth/orm-auth.repository';
 
-export interface AuthRepository {
-  login(email: string, password: string): Promise<AuthModel>;
-  register(user: CreateUserModel): Promise<AuthModel>;
-  logout(user: UserModel): Promise<void>;
-  refreshToken(user: UserModel): AuthModel;
-  verifyToken(token: string): boolean;
-  forgotPassword(email: string): void;
-  resetPassword(
-    user: UserModel,
-    password: string,
-  ): Promise<{ message: string }>;
-  changePassword(
-    user: UserModel,
-    changePasswordDto: ChangePasswordDto,
-  ): Promise<{ message: string }>;
-  verifyEmail(token: string): Promise<void>;
-  resendVerificationEmail(email: string): Promise<void>;
-  sendPasswordResetEmail(email: string): Promise<void>;
-  sendVerificationEmail(email: string): Promise<void>;
+@Injectable()
+export class AuthRepository {
+  constructor(
+    @Inject(OrmAuthRepository)
+    private readonly repository: IOrmAuthRepository,
+  ) {}
+
+  async findByEmail(email: string): Promise<AuthModel | null> {
+    return await this.repository.findByEmail(email);
+  }
 }

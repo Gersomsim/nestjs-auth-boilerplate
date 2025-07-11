@@ -6,11 +6,16 @@ export class CreateUserDto {
   password: string;
 }
 
-export class UpdateUserDto extends PartialType(CreateUserDto) {}
+export class UpdateUserDto extends PartialType(CreateUserDto) {
+  isVerified?: boolean;
+  isActive?: boolean;
+  verifiedAt?: Date;
+}
 
 export class GetUserDto {
   id: string;
   name: string;
   email: string;
-  password?: string;
+  isVerified: boolean;
+  isActive: boolean;
 }

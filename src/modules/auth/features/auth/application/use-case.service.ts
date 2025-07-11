@@ -1,122 +1,135 @@
+import * as bcrypt from 'bcrypt';
+import { JwtService } from '@nestjs/jwt';
 import {
   BadRequestException,
   Inject,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
-import { AuthRepository } from '../domain/repositories/auth.repository';
+import { IUseCaseService } from './use-case.interface';
 import { UserRepository } from '../../user/domain/repository/user.repository';
-import { UserRepositoryInterface } from '../../user/domain/repository/user.repository.interface';
 import {
   CreateUserModel,
   UserModel,
 } from '../../user/domain/models/user.model';
-import * as bcrypt from 'bcrypt';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
-import { JwtService } from '@nestjs/jwt';
-import { AuthModel } from '../domain/models/auth.model';
 import { envs } from 'src/config/envs.config';
-import { ResetPasswordDto } from '../infrastructure/dto';
 import { ChangePasswordDto } from '../infrastructure/dto/change-password.dto';
+import { AuthRepository } from '../domain/repositories/auth.repository';
+import { LoginResponse } from './interfaces';
+import { IAuthRepository } from '../domain/repositories/repository.interface';
+import { IUserRepository } from '../../user/domain/repository/user.repository.interface';
 
 @Injectable()
-export class AuthService implements AuthRepository {
+export class UseCaseService implements IUseCaseService {
   constructor(
     @Inject(UserRepository)
-    private readonly repository: UserRepositoryInterface,
+    private readonly userRepository: IUserRepository,
+    @Inject(AuthRepository)
+    private readonly authRepository: IAuthRepository,
     private readonly jwtService: JwtService,
   ) {}
-  async login(email: string, password: string): Promise<AuthModel> {
-    const user = await this.repository.findByEmail(email);
+  async login(email: string, password: string): Promise<LoginResponse> {
+    const user = await this.authRepository.findByEmail(email);
     if (!user) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    const passwordHash = user.password ?? '';
+    const passwordHash = user.password;
     const isPasswordValid = await bcrypt.compare(password, passwordHash);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid credentials');
     }
-    return this.getAuth(user);
+    // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    const { password: _, ...userWithoutPassword } = user;
+    return this.getAuth(userWithoutPassword);
   }
-  async register(user: CreateUserModel): Promise<AuthModel> {
-    const userExists = await this.repository.findByEmail(user.email);
+  async register(user: CreateUserModel): Promise<LoginResponse> {
+    const userExists = await this.authRepository.findByEmail(user.email);
     if (userExists) {
       throw new BadRequestException('User already exists');
     }
     const passwordHash = await bcrypt.hash(user.password, 10);
     const newUser = { ...user, password: passwordHash };
-    const userCreated = await this.repository.create(newUser);
+    const userCreated = await this.userRepository.create(newUser);
+    this.sendVerificationEmail(userCreated.email);
     return this.getAuth(userCreated);
   }
   verifyToken(token: string): boolean {
     try {
       this.jwtService.verify(token);
       return true;
-    } catch (eror) {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    } catch (error) {
       return false;
     }
   }
-  logout(user: UserModel): Promise<void> {
-    return Promise.resolve();
+  logout(): void {
+    // En JWT el logout se maneja del lado del cliente eliminando el token
+    // El servidor no mantiene estado de las sesiones
   }
-  refreshToken(user: UserModel): AuthModel {
+  refreshToken(user: UserModel): LoginResponse {
     return this.getAuth(user);
   }
-
   forgotPassword(email: string): void {
-    const token = this.getJwtTokenForgotPassword(email);
-    console.log(token);
-    // TODO: Send email with token
+    this.sendPasswordResetEmail(email);
   }
   async resetPassword(
     user: UserModel,
     password: string,
   ): Promise<{ message: string }> {
     const passwordHash = await bcrypt.hash(password, 10);
-    await this.repository.update(user.id, { password: passwordHash });
+    await this.userRepository.update(user.id, { password: passwordHash });
     return { message: 'Password reset successfully' };
   }
   async changePassword(
     user: UserModel,
     changePasswordDto: ChangePasswordDto,
   ): Promise<{ message: string }> {
-    const userDB = await this.repository.findByEmail(user.email);
+    const userDB = await this.authRepository.findByEmail(user.email);
     if (!userDB) {
       throw new UnauthorizedException('Invalid credentials');
     }
     const verifyPassword = await bcrypt.compare(
       changePasswordDto.password,
-      userDB.password!,
+      userDB.password,
     );
     if (!verifyPassword) {
       throw new BadRequestException('Invalid current password');
     }
     const passwordHash = await bcrypt.hash(changePasswordDto.newPassword, 10);
-    await this.repository.update(user.id, { password: passwordHash });
+    await this.userRepository.update(user.id, { password: passwordHash });
     return { message: 'Password changed successfully' };
   }
-  verifyEmail(token: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  async verifyEmail(
+    user: UserModel,
+  ): Promise<{ message: string; user: UserModel }> {
+    const userUpdated = await this.userRepository.update(user.id, {
+      isVerified: true,
+      verifiedAt: new Date(),
+    });
+    return { message: 'Email verified successfully', user: userUpdated };
   }
-  resendVerificationEmail(email: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  resendVerificationEmail(email: string): { message: string } {
+    this.sendVerificationEmail(email);
+    return { message: 'Verification email sent' };
   }
-  sendPasswordResetEmail(email: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  sendPasswordResetEmail(email: string): void {
+    const token = this.getJwtTokenForgotPassword(email);
+    console.log({ email, token });
+    // TODO: Send email with token
   }
-  sendVerificationEmail(email: string): Promise<void> {
-    throw new Error('Method not implemented.');
+  sendVerificationEmail(email: string): void {
+    const token = this.getJwtTokenForgotPassword(email);
+    console.log({ email, token });
+    // TODO: Send email with token
   }
-
-  private getAuth(user: UserModel) {
-    const { password: _, ...userData } = user;
+  private getAuth(user: UserModel): LoginResponse {
     return {
-      user: userData,
+      user,
       accessToken: this.getJwtToken({ id: user.id, type: 'access' }),
       refreshToken: this.getRefreshToken({ id: user.id, type: 'refresh' }),
     };
   }
-
   private getJwtToken(payload: JwtPayload) {
     const token = this.jwtService.sign(payload);
     return token;

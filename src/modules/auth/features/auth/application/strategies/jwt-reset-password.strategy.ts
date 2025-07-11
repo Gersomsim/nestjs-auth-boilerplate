@@ -4,8 +4,8 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import { envs } from 'src/config/envs.config';
 import { UserModel } from '../../../user/domain/models/user.model';
 import { JwtPayload } from '../interfaces/jwt-payload.interface';
-import { UserRepository } from '../../../user/domain/repository/user.repository';
-import { UserRepositoryInterface } from '../../../user/domain/repository/user.repository.interface';
+import { AuthRepository } from '../../domain/repositories/auth.repository';
+import { IAuthRepository } from '../../domain/repositories/repository.interface';
 
 @Injectable()
 export class JwtResetPasswordStrategy extends PassportStrategy(
@@ -13,8 +13,8 @@ export class JwtResetPasswordStrategy extends PassportStrategy(
   'jwt-reset-password',
 ) {
   constructor(
-    @Inject(UserRepository)
-    private readonly userRepository: UserRepositoryInterface,
+    @Inject(AuthRepository)
+    private readonly repository: IAuthRepository,
   ) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
@@ -28,7 +28,7 @@ export class JwtResetPasswordStrategy extends PassportStrategy(
     if (type !== 'forgot-password') {
       throw new UnauthorizedException('Invalid token');
     }
-    const user = await this.userRepository.findByEmail(id);
+    const user = await this.repository.findByEmail(id);
     if (!user) {
       throw new UnauthorizedException('Invalid token');
     }

@@ -8,12 +8,20 @@ import { envs } from './config/envs.config';
 import { AuthModule } from '@infrastructure/http/auth/auth.module';
 import { UserModule } from '@infrastructure/http/users/user.module';
 import { MailModule } from '@infrastructure/mails/mail.module';
+import { ThrottlerModule } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([
+      { name: 'default', ttl: envs.throttle.ttl, limit: envs.throttle.limit },
+    ]),
     TypeOrmModule.forRoot({
       type: 'postgres',
-      url: envs.database.url,
+      host: envs.database.host,
+      port: envs.database.port,
+      username: envs.database.username,
+      password: envs.database.password,
+      database: envs.database.database,
       entities: [UserEntity],
       synchronize: true,
     }),

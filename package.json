@@ -1,7 +1,7 @@
 {
-  "name": "flexi-erp",
+  "name": "nestjs-auth-boilerplate",
   "version": "0.0.1",
-  "description": "",
+  "description": "Boilerplate de NestJS con autenticación JWT, gestión de usuarios y envío de emails",
   "author": "",
   "private": true,
   "license": "UNLICENSED",

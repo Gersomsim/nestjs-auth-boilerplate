@@ -30,7 +30,15 @@ async function bootstrap() {
     },
     components: {
       securitySchemes: {
-        bearerAuth: {
+        'jwt-auth': {
+          type: 'http',
+          scheme: 'bearer',
+        },
+        'refresh-token': {
+          type: 'http',
+          scheme: 'bearer',
+        },
+        'forgot-password-token': {
           type: 'http',
           scheme: 'bearer',
         },

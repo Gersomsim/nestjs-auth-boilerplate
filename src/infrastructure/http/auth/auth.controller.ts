@@ -9,7 +9,16 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
-import { ApiTags } from '@nestjs/swagger';
+import {
+  ApiBadRequestResponse,
+  ApiBearerAuth,
+  ApiConflictResponse,
+  ApiNotFoundResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
 import {
   CreateAuthDto,
   ForgotPasswordDto,
@@ -40,6 +49,7 @@ import {
 import { Auth, GetUser } from '../decorators';
 import { Response } from '../utils/response.util';
 import { VerifyEmailQueriesDto } from './dto/verify-email-queries.dto';
+import { LoginResponseDto, UserDto } from './dto/login-response.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -54,12 +64,37 @@ export class AuthController {
     private readonly forgotPasswordHandler: ForgotPasswordHandler,
     private readonly resendEmailVerificationHandler: ResendEmailVerificationHandler,
   ) {}
+  @ApiOperation({
+    summary: 'Login user',
+  })
+  @ApiOkResponse({
+    description: 'User logged in successfully',
+    type: LoginResponseDto,
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid credentials',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User inactive',
+  })
   @Post('login')
   async login(@Body() credentials: LoginDto) {
     const command = new LoginCommand(credentials.email, credentials.password);
     const response = await this.loginUserHandler.execute(command);
     return Response.success(response);
   }
+
+  @ApiOperation({
+    summary: 'Refresh token',
+  })
+  @ApiBearerAuth('refresh-token')
+  @ApiOkResponse({
+    description: 'Request successful',
+    type: LoginResponseDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid token',
+  })
   @Post('refresh-token')
   @UseGuards(AuthGuard('jwt-refresh'))
   refreshToken(@GetUser() user: User) {
@@ -73,6 +108,16 @@ export class AuthController {
     return Response.success(this.refreshTokenHandler.execute(command));
   }
 
+  @ApiOperation({
+    summary: 'Register user',
+  })
+  @ApiOkResponse({
+    description: 'User registered successfully',
+    type: LoginResponseDto,
+  })
+  @ApiConflictResponse({
+    description: 'Email already in use',
+  })
   @Post('register')
   async register(@Body() payload: CreateAuthDto) {
     const command = new RegisterUserCommand(
@@ -83,6 +128,17 @@ export class AuthController {
     const response = await this.registerUserHandler.execute(command);
     return Response.success(response, 'User registered successfully');
   }
+
+  @ApiOperation({
+    summary: 'Resend verification email',
+  })
+  @ApiOkResponse({
+    description: 'Verification email sent successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Email already verified',
+  })
+  @ApiBearerAuth('jwt-auth')
   @Post('resend-verification-email')
   @Auth()
   async resendVerificationEmail(@GetUser() user: User) {
@@ -94,28 +150,84 @@ export class AuthController {
 
     return Response.success('', 'Verification email sent successfully');
   }
+
+  @ApiOperation({
+    summary: 'Verify email',
+  })
+  @ApiOkResponse({
+    description: 'Email verified successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid token',
+  })
   @Get('verify-email')
   async verifyEmail(@Query() queries: VerifyEmailQueriesDto) {
     if (!queries.token) {
       return Response.success('');
     }
     const command = new UserVerifyCommand(queries.token);
-    const user = await this.verifyUserHandler.execute(command);
-    return Response.success(user, 'Email verified');
+    await this.verifyUserHandler.execute(command);
+    return Response.success('', 'Email verified successfully');
   }
 
+  @ApiOperation({
+    summary: 'Verify token',
+  })
+  @ApiOkResponse({
+    description: 'Token is valid',
+    type: UserDto,
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Invalid token',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token expired',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User inactive',
+  })
   @Get('verify-token/:token')
   async verifyToken(@Param('token') token: string) {
     const command = new VerifyTokenCommand(token);
     const user = await this.verifyTokenHandler.execute(command);
     return Response.success(user, 'Token is valid');
   }
+
+  @ApiOperation({
+    summary: 'Forgot password',
+  })
+  @ApiOkResponse({
+    description: 'Email sent',
+  })
+  @ApiBadRequestResponse({
+    description: 'Email not found',
+  })
+  @ApiNotFoundResponse({
+    description: 'User not found',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'User inactive',
+  })
   @Post('forgot-password')
   async forgotPassword(@Body() payload: ForgotPasswordDto) {
     const command = new ForgotPasswordCommand(payload.email);
     await this.forgotPasswordHandler.execute(command);
     return Response.success('', 'Email sent');
   }
+
+  @ApiOperation({
+    summary: 'Reset password',
+  })
+  @ApiOkResponse({
+    description: 'Password reset successfully',
+  })
+  @ApiBadRequestResponse({
+    description: 'Invalid token',
+  })
+  @ApiUnauthorizedResponse({
+    description: 'Token expired',
+  })
+  @ApiBearerAuth('forgot-password-token')
   @Post('reset-password')
   @UseGuards(AuthGuard('jwt-reset-password'))
   async resetPassword(
@@ -130,7 +242,7 @@ export class AuthController {
       user.IsVerified,
       user.IsActive,
     );
-    const userUpdated = await this.resetPasswordHandler.execute(command);
-    return Response.success(userUpdated, 'Password reset');
+    await this.resetPasswordHandler.execute(command);
+    return Response.success('', 'Password reset successfully');
   }
 }

@@ -27,9 +27,9 @@ import { ForgotPasswordHandler } from '@application/auth/services/forgot-passwor
 @Module({
   imports: [
     JwtModule.register({
-      secret: envs.jwt.secret,
+      secret: envs.jwt.access.secret,
       signOptions: {
-        expiresIn: envs.jwt.expiration,
+        expiresIn: envs.jwt.access.expiration,
       },
     }),
     forwardRef(() => UserModule),

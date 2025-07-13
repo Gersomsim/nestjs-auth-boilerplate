@@ -20,13 +20,13 @@ async function bootstrap() {
 
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: envs.api.version,
+    defaultVersion: envs.swagger.version,
   });
   const document = SwaggerModule.createDocument(app, {
     openapi: '3.0.0',
     info: {
-      title: 'API',
-      version: '1.0.0',
+      title: envs.swagger.title,
+      version: envs.swagger.version,
     },
     components: {
       securitySchemes: {
@@ -46,6 +46,7 @@ async function bootstrap() {
     },
   });
   SwaggerModule.setup('api', app, document);
+
   await app.listen(envs.api.port, () => {
     console.log(`Server is running on port ${envs.api.port}`);
   });

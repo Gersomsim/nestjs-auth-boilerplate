@@ -14,7 +14,7 @@ export class JwtRefreshTokenStrategy extends PassportStrategy(
   constructor(private readonly userRepository: TypeormUserRepository) {
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
-      secretOrKey: envs.jwt.secretRefresh,
+      secretOrKey: envs.jwt.refresh.secret,
     });
   }
   async validate(payload: JwtPayload): Promise<User> {

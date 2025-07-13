@@ -2,40 +2,70 @@ import 'dotenv/config';
 import * as joi from 'joi';
 
 interface EnvSchema {
-  PORT: number;
-  DATABASE_URL: string;
+  DB_HOST: string;
+  DB_PORT: number;
+  DB_USERNAME: string;
+  DB_PASSWORD: string;
+  DB_DATABASE: string;
+
   JWT_SECRET: string;
-  JWT_EXPIRATION: string;
-  API_VERSION: string;
-  JWT_EXPIRATION_REFRESH: string;
-  JWT_SECRET_REFRESH: string;
-  JWT_SECRET_FORGOT_PASSWORD: string;
-  JWT_EXPIRATION_FORGOT_PASSWORD: string;
+  JWT_REFRESH_SECRET: string;
+  JWT_EXPIRES_IN: string;
+  JWT_REFRESH_EXPIRES_IN: string;
+  JWT_FORGOT_PASSWORD_SECRET: string;
+  JWT_FORGOT_PASSWORD_EXPIRES_IN: string;
+
   MAIL_HOST: string;
-  MAIL_USER: string;
-  MAIL_PASSWORD: string;
   MAIL_PORT: number;
+  MAIL_USER: string;
+  MAIL_PASS: string;
   MAIL_FROM: string;
-  API_URL: string;
+
+  APP_URL: string;
+  NODE_ENV: string;
+  PORT: number;
+
+  THROTTLE_TTL: number;
+  THROTTLE_LIMIT: number;
+
+  SWAGGER_TITLE: string;
+  SWAGGER_DESCRIPTION: string;
+  SWAGGER_VERSION: string;
+  SWAGGER_TAG: string;
 }
 
 const envsSchema = joi
   .object<EnvSchema>({
-    PORT: joi.number().default(3000),
-    DATABASE_URL: joi.string().required(),
+    DB_HOST: joi.string().required(),
+    DB_PORT: joi.number().required(),
+    DB_USERNAME: joi.string().required(),
+    DB_PASSWORD: joi.string().required(),
+    DB_DATABASE: joi.string().required(),
+
     JWT_SECRET: joi.string().required(),
-    JWT_EXPIRATION: joi.string().required(),
-    API_VERSION: joi.number().default(1),
-    JWT_EXPIRATION_REFRESH: joi.string().required(),
-    JWT_SECRET_REFRESH: joi.string().required(),
-    JWT_SECRET_FORGOT_PASSWORD: joi.string().required(),
-    JWT_EXPIRATION_FORGOT_PASSWORD: joi.string().required(),
+    JWT_REFRESH_SECRET: joi.string().required(),
+    JWT_EXPIRES_IN: joi.string().required(),
+    JWT_REFRESH_EXPIRES_IN: joi.string().required(),
+    JWT_FORGOT_PASSWORD_SECRET: joi.string().required(),
+    JWT_FORGOT_PASSWORD_EXPIRES_IN: joi.string().required(),
+
     MAIL_HOST: joi.string().required(),
-    MAIL_USER: joi.string().required(),
-    MAIL_PASSWORD: joi.string().required(),
     MAIL_PORT: joi.number().required(),
+    MAIL_USER: joi.string().required(),
+    MAIL_PASS: joi.string().required(),
     MAIL_FROM: joi.string().required(),
-    API_URL: joi.string().required(),
+
+    APP_URL: joi.string().required(),
+    NODE_ENV: joi.string().required(),
+    PORT: joi.number().required(),
+
+    THROTTLE_TTL: joi.number().required(),
+    THROTTLE_LIMIT: joi.number().required(),
+
+    SWAGGER_TITLE: joi.string().required(),
+    SWAGGER_DESCRIPTION: joi.string().required(),
+    SWAGGER_VERSION: joi.string().required(),
+    SWAGGER_TAG: joi.string().required(),
   })
   .unknown(true);
 
@@ -50,26 +80,45 @@ if (error) {
 
 export const envs = {
   database: {
-    url: value.DATABASE_URL,
+    host: value.DB_HOST,
+    port: value.DB_PORT,
+    username: value.DB_USERNAME,
+    password: value.DB_PASSWORD,
+    database: value.DB_DATABASE,
   },
   jwt: {
-    secret: value.JWT_SECRET,
-    expiration: value.JWT_EXPIRATION,
-    expirationRefresh: value.JWT_EXPIRATION_REFRESH,
-    secretRefresh: value.JWT_SECRET_REFRESH,
-    secretForgotPassword: value.JWT_SECRET_FORGOT_PASSWORD,
-    expirationForgotPassword: value.JWT_EXPIRATION_FORGOT_PASSWORD,
+    access: {
+      secret: value.JWT_SECRET,
+      expiration: value.JWT_EXPIRES_IN,
+    },
+    refresh: {
+      secret: value.JWT_REFRESH_SECRET,
+      expiration: value.JWT_REFRESH_EXPIRES_IN,
+    },
+    forgotPassword: {
+      secret: value.JWT_FORGOT_PASSWORD_SECRET,
+      expiration: value.JWT_FORGOT_PASSWORD_EXPIRES_IN,
+    },
   },
   mail: {
     host: value.MAIL_HOST,
     user: value.MAIL_USER,
-    password: value.MAIL_PASSWORD,
+    password: value.MAIL_PASS,
     port: value.MAIL_PORT,
   },
   api: {
     port: value.PORT,
-    version: value.API_VERSION,
     email: value.MAIL_FROM,
-    url: value.API_URL,
+    url: value.APP_URL,
+  },
+  swagger: {
+    title: value.SWAGGER_TITLE,
+    description: value.SWAGGER_DESCRIPTION,
+    version: value.SWAGGER_VERSION,
+    tag: value.SWAGGER_TAG,
+  },
+  throttle: {
+    ttl: value.THROTTLE_TTL,
+    limit: value.THROTTLE_LIMIT,
   },
 };

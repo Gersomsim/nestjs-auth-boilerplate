@@ -19,7 +19,7 @@ export class JwtResetPasswordStrategy extends PassportStrategy(
     super({
       jwtFromRequest: ExtractJwt.fromAuthHeaderAsBearerToken(),
       ignoreExpiration: false,
-      secretOrKey: envs.jwt.secretForgotPassword,
+      secretOrKey: envs.jwt.forgotPassword.secret,
     });
   }
   async validate(payload: JwtPayload): Promise<User> {

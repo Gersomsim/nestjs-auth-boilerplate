@@ -30,6 +30,8 @@
 
 ## 🛠️ Instalación
 
+### Opción 1: Instalación local
+
 ```bash
 # Clonar el repositorio
 git clone https://github.com/Gersomsim/nestjs-auth-boilerplate.git
@@ -39,7 +41,21 @@ cd nestjs-auth-boilerplate
 npm install
 
 # Configurar variables de entorno
-cp .env.example .env
+cp env.example .env
+```
+
+### Opción 2: Instalación con Docker (Recomendado)
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/Gersomsim/nestjs-auth-boilerplate.git
+cd nestjs-auth-boilerplate
+
+# Configurar variables de entorno
+cp env.example .env
+
+# Ejecutar con Docker Compose
+docker-compose up -d
 ```
 
 ## ⚙️ Configuración
@@ -122,13 +138,72 @@ src/
 
 ## 🐳 Docker
 
+### Ejecutar con Docker Compose (Recomendado)
+
+```bash
+# Clonar el repositorio
+git clone https://github.com/Gersomsim/nestjs-auth-boilerplate.git
+cd nestjs-auth-boilerplate
+
+# Copiar archivo de variables de entorno
+cp env.example .env
+
+# Editar variables de entorno (opcional)
+nano .env
+
+# Ejecutar con docker-compose
+docker-compose up -d
+
+# Ver logs
+docker-compose logs -f app
+
+# Detener servicios
+docker-compose down
+```
+
+### Construir imagen manualmente
+
 ```bash
 # Construir imagen
 docker build -t nestjs-auth-boilerplate .
 
-# Ejecutar con docker-compose
-docker-compose up -d
+# Ejecutar contenedor
+docker run -d \
+  --name nestjs-auth-app \
+  -p 3000:3000 \
+  --env-file .env \
+  nestjs-auth-boilerplate
 ```
+
+### Variables de entorno para Docker
+
+Asegúrate de configurar las siguientes variables en tu archivo `.env`:
+
+```env
+# Base de datos
+DB_HOST=postgres
+DB_PORT=5432
+DB_USERNAME=postgres
+DB_PASSWORD=password
+DB_DATABASE=nestjs_auth
+
+# JWT
+JWT_SECRET=tu-jwt-secret-super-seguro
+JWT_REFRESH_SECRET=tu-jwt-refresh-secret-super-seguro
+
+# Email
+MAIL_HOST=smtp.gmail.com
+MAIL_PORT=587
+MAIL_USER=tu-email@gmail.com
+MAIL_PASS=tu-password-de-aplicacion
+MAIL_FROM=tu-email@gmail.com
+```
+
+### Servicios incluidos
+
+- **app**: Aplicación NestJS (puerto 3000)
+- **postgres**: Base de datos PostgreSQL (puerto 5432)
+- **redis**: Cache Redis (puerto 6379) - opcional
 
 ## 📖 Documentación API
 

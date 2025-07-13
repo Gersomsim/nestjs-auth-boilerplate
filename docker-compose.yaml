@@ -1,16 +1,79 @@
 version: '3.8'
 
 services:
+  # Base de datos PostgreSQL
   postgres:
-    image: postgres:15
+    image: postgres:15-alpine
+    container_name: nestjs-auth-postgres
     ports:
       - '5432:5432'
     environment:
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
-      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER:-postgres}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-nestjs_auth}
     volumes:
-      - database:/var/lib/postgresql/data
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - nestjs-network
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER:-postgres}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Aplicación NestJS
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      target: production
+    container_name: nestjs-auth-app
+    ports:
+      - '3000:3000'
+    environment:
+      - NODE_ENV=production
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USERNAME=${POSTGRES_USER:-postgres}
+      - DB_PASSWORD=${POSTGRES_PASSWORD:-password}
+      - DB_DATABASE=${POSTGRES_DB:-nestjs_auth}
+      - JWT_SECRET=${JWT_SECRET:-your-jwt-secret}
+      - JWT_REFRESH_SECRET=${JWT_REFRESH_SECRET:-your-jwt-refresh-secret}
+      - JWT_EXPIRES_IN=${JWT_EXPIRES_IN:-15m}
+      - JWT_REFRESH_EXPIRES_IN=${JWT_REFRESH_EXPIRES_IN:-7d}
+      - MAIL_HOST=${MAIL_HOST:-smtp.gmail.com}
+      - MAIL_PORT=${MAIL_PORT:-587}
+      - MAIL_USER=${MAIL_USER}
+      - MAIL_PASS=${MAIL_PASS}
+      - MAIL_FROM=${MAIL_FROM}
+      - APP_URL=${APP_URL:-http://localhost:3000}
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - nestjs-network
+    restart: unless-stopped
+
+  # Redis (opcional, para cache y sesiones)
+  redis:
+    image: redis:7-alpine
+    container_name: nestjs-auth-redis
+    ports:
+      - '6379:6379'
+    volumes:
+      - redis_data:/data
+    networks:
+      - nestjs-network
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
 volumes:
-  database:
+  postgres_data:
+  redis_data:
+
+networks:
+  nestjs-network:
+    driver: bridge

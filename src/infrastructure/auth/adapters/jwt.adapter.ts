@@ -23,8 +23,8 @@ export class JwtAdapter implements IJwtService {
     return this.jwtService.sign(
       { id, type: 'refresh-token' },
       {
-        expiresIn: envs.jwt.expirationRefresh,
-        secret: envs.jwt.secretRefresh,
+        expiresIn: envs.jwt.refresh.expiration,
+        secret: envs.jwt.refresh.secret,
       },
     );
   }
@@ -32,13 +32,13 @@ export class JwtAdapter implements IJwtService {
     return this.jwtService.sign(
       { id, type: 'forgot-password' },
       {
-        expiresIn: envs.jwt.expirationForgotPassword,
-        secret: envs.jwt.secretForgotPassword,
+        expiresIn: envs.jwt.forgotPassword.expiration,
+        secret: envs.jwt.forgotPassword.secret,
       },
     );
   }
   async verifyResetPasswordToken(token: string): Promise<JwtPayload> {
-    return this.verify(token, envs.jwt.secretForgotPassword);
+    return this.verify(token, envs.jwt.forgotPassword.secret);
   }
 
   private async verify(token: string, secret: string): Promise<JwtPayload> {

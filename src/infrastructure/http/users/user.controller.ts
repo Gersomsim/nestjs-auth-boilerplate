@@ -23,7 +23,17 @@ import {
   GetUserByIdHandler,
 } from '@application/users/services';
 import { Response } from '../utils/response.util';
+import {
+  ApiBearerAuth,
+  ApiForbiddenResponse,
+  ApiOkResponse,
+  ApiOperation,
+  ApiTags,
+  ApiUnauthorizedResponse,
+} from '@nestjs/swagger';
+import { UserDto } from '../auth/dto/login-response.dto';
 
+@ApiTags('Users')
 @Controller('users')
 export class UserController {
   constructor(
@@ -33,6 +43,21 @@ export class UserController {
     private readonly activeUserHandler: ActiveUserHandler,
   ) {}
 
+  @ApiOperation({
+    summary: 'Get all users',
+    description: 'Get all users only for super admin',
+  })
+  @ApiOkResponse({
+    description: 'Request successful',
+    type: [UserDto],
+  })
+  @ApiBearerAuth('jwt-auth')
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized access to this resource',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden access to this resource',
+  })
   @Get('')
   @Auth()
   async getUsers() {
@@ -41,6 +66,21 @@ export class UserController {
     return Response.success(users);
   }
 
+  @ApiOperation({
+    summary: 'Get user by id',
+    description: 'Get user by id only for super admin',
+  })
+  @ApiOkResponse({
+    description: 'Request successful',
+    type: UserDto,
+  })
+  @ApiBearerAuth('jwt-auth')
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized access to this resource',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden access to this resource',
+  })
   @Get(':id')
   @Auth()
   async getUserById(@Param('id', ParseUUIDPipe) id: string) {
@@ -50,6 +90,18 @@ export class UserController {
     return Response.success(user);
   }
 
+  @ApiOperation({
+    summary: 'Change password',
+    description: 'Change password only for user',
+  })
+  @ApiOkResponse({
+    description: 'Password changed successfully',
+    type: UserDto,
+  })
+  @ApiBearerAuth('jwt-auth')
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized access to this resource',
+  })
   @Post('change-password')
   @Auth()
   async changePassword(
@@ -65,6 +117,22 @@ export class UserController {
     return Response.success(user, 'Password changed successfully');
   }
 
+  @ApiOperation({
+    summary: 'Active inactive user',
+    description:
+      'Active or inactive user only for super admin, if user is active, it will be inactive and if user is inactive, it will be active',
+  })
+  @ApiOkResponse({
+    description: 'User updated successfully',
+    type: UserDto,
+  })
+  @ApiBearerAuth('jwt-auth')
+  @ApiUnauthorizedResponse({
+    description: 'Unauthorized access to this resource',
+  })
+  @ApiForbiddenResponse({
+    description: 'Forbidden access to this resource',
+  })
   @Patch('active-inactive/:id')
   @Auth()
   async activeInactive(@Param('id', ParseUUIDPipe) id: string) {

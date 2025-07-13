@@ -5,6 +5,7 @@ import { JwtToken, UserToken } from '@infrastructure/di';
 import { IUserRepository } from '@domain/users/interfaces';
 import { InvalidCredentialsException } from '@domain/common/exceptions/invalid-credentials.exception';
 import { IJwtService } from '@domain/auth/interfaces/jwt.service.interface';
+import { UserInactiveException } from '@domain/common/exceptions';
 
 @Injectable()
 export class LoginUserHandler {
@@ -17,8 +18,9 @@ export class LoginUserHandler {
 
   async execute(command: LoginCommand) {
     const response = await this.userRepository.findByEmail(command.email);
-    if (!response) throw new InvalidCredentialsException();
+    if (!response || !response.user) throw new InvalidCredentialsException();
     const { user, passwordHash } = response;
+    if (!user.IsActive) throw new UserInactiveException();
     const isPasswordValid = await bcrypt.compare(
       command.password,
       passwordHash,

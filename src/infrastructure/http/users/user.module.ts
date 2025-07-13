@@ -1,13 +1,25 @@
 import { Module } from '@nestjs/common';
 import { UserController } from './user.controller';
-import { UserDI } from '@infrastructure/di';
+import { UserTokenProvider } from '@infrastructure/di';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { UserEntity } from '@infrastructure/databases/typeorm/user/entities/user.entity';
+import {
+  ActiveUserHandler,
+  GetAllUsersHandler,
+  GetUserByIdHandler,
+} from '@application/users/services';
+import { ChangeUserPasswordHandler } from '@application/users/services/change-user-password.handler';
 
 @Module({
   imports: [TypeOrmModule.forFeature([UserEntity])],
   controllers: [UserController],
-  providers: [UserDI],
-  exports: [UserDI, TypeOrmModule],
+  providers: [
+    UserTokenProvider,
+    GetUserByIdHandler,
+    ChangeUserPasswordHandler,
+    GetAllUsersHandler,
+    ActiveUserHandler,
+  ],
+  exports: [UserTokenProvider, TypeOrmModule],
 })
 export class UserModule {}

@@ -7,6 +7,6 @@ export interface IUserRepository {
   createElement(user: User, rawPassword: string): Promise<User>;
   findById(id: string): Promise<User | null>;
   findAll(): Promise<User[]>;
-  updateElement(user: User): Promise<User>;
+  updateElement(user: User, rawPassword?: string): Promise<User>;
   deleteElement(id: string): Promise<User>;
 }

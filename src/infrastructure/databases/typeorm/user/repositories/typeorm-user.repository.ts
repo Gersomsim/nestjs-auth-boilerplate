@@ -42,7 +42,7 @@ export class TypeormUserRepository implements IUserRepository {
     const userEntities = await this.repository.find();
     return userEntities.map((userEntity) => this.toDomain(userEntity));
   }
-  async updateElement(user: User): Promise<User> {
+  async updateElement(user: User, rawPassword?: string): Promise<User> {
     const userEntity = await this.repository.findOneBy({ id: user.Id });
     if (!userEntity) throw new NotFoundException('User not found');
     userEntity.name = user.Name;
@@ -50,6 +50,10 @@ export class TypeormUserRepository implements IUserRepository {
     userEntity.isVerified = user.IsVerified;
     userEntity.isActive = user.IsActive;
     userEntity.verifiedAt = user.VerifiedAt ?? null;
+    if (rawPassword) {
+      const passwordHash = await bcrypt.hash(rawPassword, 10);
+      userEntity.password = passwordHash;
+    }
     const savedUser = await this.repository.save(userEntity);
     return this.toDomain(savedUser);
   }

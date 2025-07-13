@@ -21,30 +21,6 @@ export class User {
     this.isActive = isActive;
     this.verifiedAt = verifiedAt;
   }
-
-  public static create(name: string, email: string) {
-    const id = crypto.randomUUID();
-    return new User(id, name, email, false, true);
-  }
-  public activateAccount() {
-    if (this.isActive) {
-      throw new Error('User already activated');
-    }
-    this.isActive = true;
-  }
-  public deactivateAccount() {
-    if (!this.isActive) {
-      throw new Error('User already deactivated');
-    }
-    this.isActive = false;
-  }
-  public verifyAccount() {
-    if (this.isVerified) {
-      throw new Error('User already verified');
-    }
-    this.isVerified = true;
-    this.verifiedAt = new Date();
-  }
   // Getters
   public get IsActive() {
     return this.isActive;
@@ -63,5 +39,17 @@ export class User {
   }
   public get VerifiedAt() {
     return this.verifiedAt;
+  }
+
+  public static create(name: string, email: string, id?: string) {
+    const idUser = id || crypto.randomUUID();
+    return new User(idUser, name, email, false, true);
+  }
+  public toggleActive() {
+    this.isActive = !this.isActive;
+  }
+  public verifyAccount() {
+    this.isVerified = true;
+    this.verifiedAt = new Date();
   }
 }

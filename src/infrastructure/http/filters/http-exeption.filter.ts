@@ -1,4 +1,10 @@
+import {
+  InvalidCredentialsException,
+  NotFoundException,
+  UserInactiveException,
+} from '@domain/common/exceptions';
 import { DomainException } from '@domain/common/exceptions/domain.exception';
+import { InvalidTokenException } from '@domain/common/exceptions/invalid-token.exception';
 import { UserAlreadyExistsException } from '@domain/common/exceptions/user-already-exists.exception';
 import {
   ArgumentsHost,
@@ -8,7 +14,7 @@ import {
   HttpStatus,
   Logger,
 } from '@nestjs/common';
-import { Response } from 'express';
+import { Request, Response } from 'express';
 import { ApiResponse } from 'src/infrastructure/interfaces';
 
 @Catch()
@@ -18,7 +24,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
   catch(exception: unknown, host: ArgumentsHost) {
     const ctx = host.switchToHttp();
     const response = ctx.getResponse<Response>();
-    const request = ctx.getRequest();
+    const request: Request = ctx.getRequest();
 
     let status: number;
     let message: string;
@@ -26,6 +32,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let details: any;
 
     if (exception instanceof HttpException) {
+      console.log('is http exception');
       status = exception.getStatus();
       const exceptionResponse = exception.getResponse();
 
@@ -39,6 +46,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
       code = this.getErrorCode(status);
     } else if (exception instanceof DomainException) {
+      console.log('is domain exception');
       if (exception instanceof UserAlreadyExistsException) {
         status = HttpStatus.CONFLICT;
         message = exception.message;
@@ -46,6 +54,22 @@ export class HttpExceptionFilter implements ExceptionFilter {
         details = {
           email: exception.message.split('"')[1],
         };
+      } else if (exception instanceof InvalidTokenException) {
+        status = HttpStatus.UNAUTHORIZED;
+        message = exception.message;
+        code = 'INVALID_TOKEN';
+      } else if (exception instanceof UserInactiveException) {
+        status = HttpStatus.UNAUTHORIZED;
+        message = exception.message;
+        code = 'USER_INACTIVE';
+      } else if (exception instanceof NotFoundException) {
+        status = HttpStatus.NOT_FOUND;
+        message = exception.message;
+        code = 'NOT_FOUND';
+      } else if (exception instanceof InvalidCredentialsException) {
+        status = HttpStatus.UNAUTHORIZED;
+        message = exception.message;
+        code = 'INVALID_CREDENTIALS';
       } else {
         status = HttpStatus.BAD_REQUEST;
         message = exception.message;
@@ -64,7 +88,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
         exception instanceof Error ? exception.stack : undefined,
       );
     }
-    console.log(details);
     const errorResponse: ApiResponse = {
       success: false,
       message,
@@ -82,7 +105,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
     // Cachear el error
     this.cacheError(errorResponse, request);
-
+    console.log(status);
     response.status(status).json(errorResponse);
   }
 
@@ -99,7 +122,6 @@ export class HttpExceptionFilter implements ExceptionFilter {
       502: 'BAD_GATEWAY',
       503: 'SERVICE_UNAVAILABLE',
     };
-
     return errorCodes[status] || 'UNKNOWN_ERROR';
   }
 

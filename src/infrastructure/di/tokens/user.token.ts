@@ -2,7 +2,7 @@ import { TypeormUserRepository } from '../../databases/typeorm/user/repositories
 
 export const UserToken = 'USER_TOKEN';
 
-export const UserDI = {
+export const UserTokenProvider = {
   provide: UserToken,
   useClass: TypeormUserRepository,
 };

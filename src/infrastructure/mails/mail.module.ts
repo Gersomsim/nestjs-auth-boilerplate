@@ -2,6 +2,7 @@ import { MailerModule } from '@nestjs-modules/mailer';
 import { Module } from '@nestjs/common';
 import { envs } from 'src/config/envs.config';
 import { MailTokenProvider } from '@infrastructure/di/tokens/mail/mail.token';
+import { TemplateRendererService } from './template-render.service';
 
 @Module({
   imports: [
@@ -19,7 +20,7 @@ import { MailTokenProvider } from '@infrastructure/di/tokens/mail/mail.token';
       },
     }),
   ],
-  providers: [MailTokenProvider],
+  providers: [MailTokenProvider, TemplateRendererService],
   exports: [MailTokenProvider],
 })
 export class MailModule {}

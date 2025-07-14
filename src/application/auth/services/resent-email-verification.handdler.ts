@@ -19,13 +19,14 @@ export class ResendEmailVerificationHandler {
     const verificationToken = this.jwtService.generateResetPasswordToken(
       command.userId,
     );
-    const text = `Click <a href="${envs.api.url}/auth/verify-email?token=${verificationToken}">here</a> to verify your email`;
+    const link = `${envs.frontend.url}${envs.frontend.confirmMailPath}?token=${verificationToken}`;
+    const expiresIn = envs.jwt.forgotPassword.expiration;
 
     await this.mailService.sendMail(
       command.email,
       'Email Verification',
-      text,
-      'email-verification',
+      { link, name: command.name, expiresIn },
+      'users/email-verification',
     );
   }
 }

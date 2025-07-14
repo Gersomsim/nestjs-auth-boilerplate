@@ -29,7 +29,8 @@ export class ForgotPasswordHandler {
     await this.emailService.sendMail(
       user.Email,
       'Reset your password',
-      `Click <a href="http://localhost:3000/reset-password/${token}">here</a> to reset your password`,
+      { token, name: user.Name },
+      'users/welcome.template',
     );
   }
 }

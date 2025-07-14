@@ -20,7 +20,7 @@ async function bootstrap() {
 
   app.enableVersioning({
     type: VersioningType.URI,
-    defaultVersion: envs.swagger.version,
+    defaultVersion: envs.api.version,
   });
   const document = SwaggerModule.createDocument(app, {
     openapi: '3.0.0',

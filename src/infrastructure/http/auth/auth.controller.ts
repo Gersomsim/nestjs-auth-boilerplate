@@ -145,7 +145,11 @@ export class AuthController {
     if (user.IsVerified) {
       throw new BadRequestException('Email already verified');
     }
-    const command = new ResendEmailVerificationCommand(user.Id, user.Email);
+    const command = new ResendEmailVerificationCommand(
+      user.Id,
+      user.Email,
+      user.Name,
+    );
     await this.resendEmailVerificationHandler.execute(command);
 
     return Response.success('', 'Verification email sent successfully');

@@ -2,7 +2,7 @@ export interface IMailService {
   sendMail(
     to: string,
     subject: string,
-    text: string,
-    template?: string,
+    data: any,
+    template: string,
   ): Promise<void>;
 }

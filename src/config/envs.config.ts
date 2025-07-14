@@ -24,6 +24,8 @@ interface EnvSchema {
   APP_URL: string;
   NODE_ENV: string;
   PORT: number;
+  API_VERSION: string;
+  APP_NAME: string;
 
   THROTTLE_TTL: number;
   THROTTLE_LIMIT: number;
@@ -32,6 +34,10 @@ interface EnvSchema {
   SWAGGER_DESCRIPTION: string;
   SWAGGER_VERSION: string;
   SWAGGER_TAG: string;
+
+  FRONTEND_URL: string;
+  FRONTEND_CONFIRM_MAIL_PATH: string;
+  FRONTEND_RESET_PASSWORD_PATH: string;
 }
 
 const envsSchema = joi
@@ -58,6 +64,8 @@ const envsSchema = joi
     APP_URL: joi.string().required(),
     NODE_ENV: joi.string().required(),
     PORT: joi.number().required(),
+    API_VERSION: joi.string().required(),
+    APP_NAME: joi.string().required(),
 
     THROTTLE_TTL: joi.number().required(),
     THROTTLE_LIMIT: joi.number().required(),
@@ -66,6 +74,10 @@ const envsSchema = joi
     SWAGGER_DESCRIPTION: joi.string().required(),
     SWAGGER_VERSION: joi.string().required(),
     SWAGGER_TAG: joi.string().required(),
+
+    FRONTEND_URL: joi.string().required(),
+    FRONTEND_CONFIRM_MAIL_PATH: joi.string().required(),
+    FRONTEND_RESET_PASSWORD_PATH: joi.string().required(),
   })
   .unknown(true);
 
@@ -110,6 +122,9 @@ export const envs = {
     port: value.PORT,
     email: value.MAIL_FROM,
     url: value.APP_URL,
+    version: value.API_VERSION,
+    env: value.NODE_ENV,
+    name: value.APP_NAME,
   },
   swagger: {
     title: value.SWAGGER_TITLE,
@@ -120,5 +135,10 @@ export const envs = {
   throttle: {
     ttl: value.THROTTLE_TTL,
     limit: value.THROTTLE_LIMIT,
+  },
+  frontend: {
+    url: value.FRONTEND_URL,
+    confirmMailPath: value.FRONTEND_CONFIRM_MAIL_PATH,
+    resetPasswordPath: value.FRONTEND_RESET_PASSWORD_PATH,
   },
 };

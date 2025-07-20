@@ -29,12 +29,15 @@ export class RegisterUserHandler {
     );
     const accessToken = this.jwtService.generateToken(userCreated.Id);
     const refreshToken = this.jwtService.generateRefreshToken(userCreated.Id);
-    const url = `${envs.frontend.url}${envs.frontend.confirmMailPath}?token=${accessToken}`;
+    const verificationToken = this.jwtService.generateResetPasswordToken(
+      userCreated.Id,
+    );
+    const url = `${envs.frontend.url}${envs.frontend.confirmMailPath}?token=${verificationToken}`;
     await this.emailService.sendMail(
       userCreated.Email,
       'Welcome to the platform',
       { token: url },
-      'users/welcome.template',
+      'users/welcome',
     );
     return {
       user: userCreated,

@@ -5,6 +5,7 @@ import { JwtToken, UserToken, MailToken } from '@infrastructure/di';
 import { IJwtService } from '@domain/auth/interfaces/jwt.service.interface';
 import { UserInactiveException } from '@domain/common/exceptions';
 import { IMailService } from '@domain/mail/interfaces/mail.service.interface';
+import { envs } from 'src/config/envs.config';
 
 @Injectable()
 export class ForgotPasswordHandler {
@@ -26,11 +27,13 @@ export class ForgotPasswordHandler {
       throw new UserInactiveException();
     }
     const token = this.jwtService.generateResetPasswordToken(user.Id);
+    const expiresIn = envs.jwt.forgotPassword.expiration;
+    const link = `${envs.frontend.url}${envs.frontend.resetPasswordPath}?token=${token}`;
     await this.emailService.sendMail(
       user.Email,
       'Reset your password',
-      { token, name: user.Name },
-      'users/welcome.template',
+      { link, name: user.Name, expiresIn },
+      'users/forgot-password',
     );
   }
 }

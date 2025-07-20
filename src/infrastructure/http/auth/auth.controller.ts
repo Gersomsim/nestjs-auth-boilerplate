@@ -167,7 +167,7 @@ export class AuthController {
   @Get('verify-email')
   async verifyEmail(@Query() queries: VerifyEmailQueriesDto) {
     if (!queries.token) {
-      return Response.success('');
+      throw new BadRequestException('Invalid token');
     }
     const command = new UserVerifyCommand(queries.token);
     await this.verifyUserHandler.execute(command);

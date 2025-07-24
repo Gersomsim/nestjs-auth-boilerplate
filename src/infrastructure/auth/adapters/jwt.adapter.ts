@@ -1,5 +1,5 @@
 import { IJwtService } from '@domain/auth/interfaces/jwt.service.interface';
-import { InvalidTokenException } from '@domain/common/exceptions';
+import { BadRequestException } from '@domain/common/exceptions';
 import { JwtPayload } from '@infrastructure/interfaces/jwt-payload.interface';
 import { Injectable } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
@@ -16,7 +16,7 @@ export class JwtAdapter implements IJwtService {
     try {
       return await this.jwtService.verify(token);
     } catch (error) {
-      throw new InvalidTokenException(error.message);
+      throw new BadRequestException(error.message);
     }
   }
   generateRefreshToken(id: string): string {

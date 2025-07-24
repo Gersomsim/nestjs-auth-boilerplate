@@ -4,7 +4,7 @@ import { IUserRepository } from '@domain/users/interfaces';
 import { JwtToken, UserToken } from '@infrastructure/di';
 import { Inject, Injectable } from '@nestjs/common';
 import { VerifyTokenCommand } from '../commands';
-import { InvalidTokenException } from '@domain/common/exceptions/invalid-token.exception';
+import { BadRequestException } from '@domain/common/exceptions';
 import { UserInactiveException } from '@domain/common/exceptions';
 
 @Injectable()
@@ -18,11 +18,11 @@ export class VerifyTokenHandler {
   async execute(command: VerifyTokenCommand): Promise<User> {
     const payload = await this.jwtService.verifyToken(command.token);
     if (payload.type !== 'access') {
-      throw new InvalidTokenException('Invalid token for this type');
+      throw new BadRequestException('Invalid token for this type');
     }
     const user = await this.userRepository.findById(payload.id);
     if (!user) {
-      throw new InvalidTokenException('Invalid token');
+      throw new BadRequestException('Invalid token');
     }
     if (!user.IsActive) {
       throw new UserInactiveException();
